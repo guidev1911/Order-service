@@ -16,6 +16,17 @@ public class Order {
     private BigDecimal price;
     private LocalDateTime createdAt;
 
+    public Order() {
+    }
+
+    public Order(Long id, String productName, Integer quantity, BigDecimal price, LocalDateTime createdAt) {
+        this.id = id;
+        this.productName = productName;
+        this.quantity = quantity;
+        this.price = price;
+        this.createdAt = createdAt;
+    }
+
     public Long getId() {
         return id;
     }

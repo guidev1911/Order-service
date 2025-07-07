@@ -19,6 +19,12 @@ public class OrderRequestDTO {
     @Min(value = 1, message = "Preço deve ser maior que 0")
     private BigDecimal price;
 
+    public OrderRequestDTO(String product, Integer quantity, BigDecimal price) {
+        this.product = product;
+        this.quantity = quantity;
+        this.price = price;
+    }
+
     public String getProduct() {
         return product;
     }
