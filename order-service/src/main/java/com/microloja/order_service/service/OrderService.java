@@ -3,6 +3,7 @@ package com.microloja.order_service.service;
 import com.microloja.order_service.config.RabbitMQConfig;
 import com.microloja.order_service.dto.OrderRequestDTO;
 import com.microloja.order_service.dto.OrderResponseDTO;
+import com.microloja.order_service.exceptions.OrderNotFoundException;
 import com.microloja.order_service.model.Order;
 import com.microloja.order_service.repository.OrderRepository;
 import org.slf4j.Logger;
@@ -51,7 +52,12 @@ public class OrderService {
 
     public OrderResponseDTO findById(Long id) {
         Order order = repository.findById(id)
-                .orElseThrow(() -> new RuntimeException("Pedido não encontrado com ID: " + id));
+                .orElseThrow(() -> {
+                    String msg = "Pedido não encontrado com ID: " + id;
+                    logger.warn(msg);
+                    return new OrderNotFoundException(msg);
+                });
+
         return toResponseDTO(order);
     }
 
