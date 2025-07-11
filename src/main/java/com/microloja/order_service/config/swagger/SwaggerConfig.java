@@ -1,4 +1,4 @@
-package com.microloja.order_service.controller.swagger;
+package com.microloja.order_service.config.swagger;
 
 import io.swagger.v3.oas.models.OpenAPI;
 import io.swagger.v3.oas.models.info.Info;
@@ -13,8 +13,8 @@ public class SwaggerConfig {
     public OpenAPI apiInfo() {
         return new OpenAPI()
                 .info(new Info()
-                        .title("Microservice")
-                        .description("Microserviço para ordem de serviço")
+                        .title("Micro serviço de OS")
+                        .description("Microservice para ordem de serviço")
                         .version("1.0"));
     }
 
