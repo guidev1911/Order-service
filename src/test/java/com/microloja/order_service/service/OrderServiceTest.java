@@ -27,6 +27,9 @@ class OrderServiceTest {
     @Mock
     private RabbitTemplate rabbitTemplate;
 
+    @Mock
+    private OrderPublisher orderPublisher;
+
     @InjectMocks
     private OrderService service;
 
@@ -36,7 +39,7 @@ class OrderServiceTest {
     }
 
     @Test
-    void shouldCreateOrderAndSendToRabbitMQ() {
+    void deveCriarPedidoEEviarParaORabbitMQ() {
         OrderRequestDTO dto = new OrderRequestDTO("Produto A", 3, new BigDecimal("29.99"));
         Order savedOrder = new Order(1L, "Produto A", 3, new BigDecimal("29.99"), LocalDateTime.now());
 
@@ -47,15 +50,19 @@ class OrderServiceTest {
         assertThat(response).isNotNull();
         assertThat(response.getProduct()).isEqualTo("Produto A");
         assertThat(response.getQuantity()).isEqualTo(3);
-        assertThat(response.getPrice()).isEqualTo(new BigDecimal("29.99"));
+        assertThat(response.getPrice()).isEqualByComparingTo("29.99");
 
         verify(repository, times(1)).save(any(Order.class));
-        verify(rabbitTemplate, times(1))
-                .convertAndSend(RabbitMQConfig.EXCHANGE, RabbitMQConfig.ROUTING_KEY, savedOrder);
+        verify(orderPublisher, times(1)).send(argThat(event ->
+                event.getOrderId().equals("1") &&
+                        event.getProduct().equals("Produto A") &&
+                        event.getQuantity().equals(3) &&
+                        event.getTotal().compareTo(new BigDecimal("29.99")) == 0
+        ));
     }
 
     @Test
-    void shouldFindAllOrders() {
+    void deveBuscarTodosOsPedidos() {
         List<Order> orders = List.of(
                 new Order(1L, "Produto A", 2, new BigDecimal("10.00"), LocalDateTime.now()),
                 new Order(2L, "Produto B", 5, new BigDecimal("15.00"), LocalDateTime.now())
@@ -70,7 +77,7 @@ class OrderServiceTest {
     }
 
     @Test
-    void shouldFindOrderById() {
+    void deveBuscarPedidoPorId() {
         Order order = new Order(1L, "Produto X", 1, new BigDecimal("50.00"), LocalDateTime.now());
         when(repository.findById(1L)).thenReturn(Optional.of(order));
 
@@ -81,7 +88,7 @@ class OrderServiceTest {
     }
 
     @Test
-    void shouldThrowWhenOrderNotFound() {
+    void deveLancarExcecaoQuandoPedidoNaoEncontrado() {
         when(repository.findById(99L)).thenReturn(Optional.empty());
 
         assertThatThrownBy(() -> service.findById(99L))
@@ -89,3 +96,4 @@ class OrderServiceTest {
                 .hasMessageContaining("Pedido não encontrado");
     }
 }
+
