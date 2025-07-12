@@ -15,17 +15,32 @@ import java.time.LocalDateTime;
 import java.util.List;
 import java.util.stream.Collectors;
 
+import com.microloja.order_service.dto.OrderEvent;
+import com.microloja.order_service.dto.OrderRequestDTO;
+import com.microloja.order_service.dto.OrderResponseDTO;
+import com.microloja.order_service.exceptions.OrderNotFoundException;
+import com.microloja.order_service.model.Order;
+import com.microloja.order_service.repository.OrderRepository;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.springframework.stereotype.Service;
+
+import java.math.BigDecimal;
+import java.time.LocalDateTime;
+import java.util.List;
+import java.util.stream.Collectors;
+
 @Service
 public class OrderService {
 
     private static final Logger logger = LoggerFactory.getLogger(OrderService.class);
 
     private final OrderRepository repository;
-    private final RabbitTemplate rabbitTemplate;
+    private final OrderPublisher orderPublisher;
 
-    public OrderService(OrderRepository repository, RabbitTemplate rabbitTemplate) {
+    public OrderService(OrderRepository repository, OrderPublisher orderPublisher) {
         this.repository = repository;
-        this.rabbitTemplate = rabbitTemplate;
+        this.orderPublisher = orderPublisher;
     }
 
     public OrderResponseDTO create(OrderRequestDTO dto) {
@@ -38,8 +53,13 @@ public class OrderService {
         Order saved = repository.save(order);
         logger.info("Pedido salvo no banco: {}", saved);
 
-        rabbitTemplate.convertAndSend(RabbitMQConfig.EXCHANGE, RabbitMQConfig.ROUTING_KEY, saved);
-        logger.info("Evento enviado ao RabbitMQ: {}", saved);
+        OrderEvent event = new OrderEvent();
+        event.setOrderId(String.valueOf(saved.getId()));
+        event.setProduct(saved.getProductName());
+        event.setQuantity(saved.getQuantity());
+        event.setTotal(saved.getPrice());
+
+        orderPublisher.send(event);
 
         return toResponseDTO(saved);
     }
