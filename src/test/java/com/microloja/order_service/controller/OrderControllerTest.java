@@ -75,7 +75,7 @@ class OrderControllerTest {
 
         doReturn(responseDTO).when(orderService).create(any(OrderRequestDTO.class));
 
-        mockMvc.perform(post("/api/orders")
+        mockMvc.perform(post("/orders")
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(objectMapper.writeValueAsString(dto)))
                 .andExpect(status().isCreated())
@@ -90,7 +90,7 @@ class OrderControllerTest {
         Order order = new Order(null, "Teclado", 2, new BigDecimal("100.00"), LocalDateTime.now());
         repository.save(order);
 
-        mockMvc.perform(get("/api/orders"))
+        mockMvc.perform(get("/orders"))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$[*].product", Matchers.hasItem("Teclado")));
     }
@@ -100,7 +100,7 @@ class OrderControllerTest {
         Order order = new Order(null, "Mouse", 1, new BigDecimal("50.00"), LocalDateTime.now());
         Order saved = repository.save(order);
 
-        mockMvc.perform(get("/api/orders/" + saved.getId()))
+        mockMvc.perform(get("/orders/" + saved.getId()))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.product").value("Mouse"));
     }
